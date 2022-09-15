@@ -1,9 +1,6 @@
 import pandas as pd
 
-from lib import utils, data
-
-
-START_YEAR = 2019
+from lib.data import raw
 
 
 def main():
@@ -19,12 +16,12 @@ def main():
         name = name_fmt['Dataset name']
         fmt = name_fmt['Format']
 
-        data_loader = data.load_dataset(name, fmt, START_YEAR, verbose=True)
+        data_loader = raw.load_dataset(name, fmt, raw.START_YEAR, verbose=True)
 
-        data.save_dataset(data_loader, name)
+        raw.save_dataset(data_loader, name)
 
     # traffic data
-    traffic_dataloader = data.load_dataset(traffic_dataset[0], traffic_dataset[1], START_YEAR, verbose=True)
+    traffic_dataloader = raw.load_dataset(traffic_dataset[0], traffic_dataset[1], raw.START_YEAR, verbose=True)
 
     dataframes = []
 
@@ -41,7 +38,7 @@ def main():
 
     traffic_data = pd.concat(dataframes, axis=0).sort_values(by='fecha', ignore_index=True)
 
-    data.save_dataset(traffic_data, traffic_dataset[0])
+    raw.save_dataset(traffic_data, traffic_dataset[0])
 
 
 if __name__ == '__main__':
