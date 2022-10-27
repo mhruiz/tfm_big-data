@@ -5,40 +5,47 @@ from lib.data import raw
 
 def main():
 
-    dataset_names = pd.read_csv('./data/datasets_madrid.csv')
+    for dataset_name, format, save_name, station_id in raw.RAW_DATA_NAMES[1:]:
 
-    traffic_dataset = dataset_names.tail(1).values[0]
+        data_loader = raw.load_dataset(dataset_name, format, raw.START_YEAR, verbose=True)
 
-    dataset_names = dataset_names.iloc[:-1]
+        # get data from selected stations
+        stations = pd.read_csv(f'{raw.SAVE_DIR}{save_name}_measuring_stations.csv')
 
-    for _, name_fmt in dataset_names.iterrows():
+        data = pd.concat(data_loader, axis=0)
 
-        name = name_fmt['Dataset name']
-        fmt = name_fmt['Format']
+        joined = pd.merge(data, stations, left_on=station_id, right_on='id', how='inner')
 
-        data_loader = raw.load_dataset(name, fmt, raw.START_YEAR, verbose=True)
-
-        raw.save_dataset(data_loader, name)
-
+        raw.save_dataset(joined, save_name + '_data')
+    
+    ##############
     # traffic data
-    traffic_dataloader = raw.load_dataset(traffic_dataset[0], traffic_dataset[1], raw.START_YEAR, verbose=True)
+    dataset_name, format, save_name, station_id = raw.RAW_DATA_NAMES[0]
+
+    # get data from selected stations
+    stations = pd.read_csv(f'{raw.SAVE_DIR}{save_name}_measuring_stations.csv')
+
+    traffic_dataloader = raw.load_dataset(dataset_name, format, raw.START_YEAR, verbose=True)
 
     dataframes = []
 
     for df in traffic_dataloader:  
 
-        # only validated data
-        df = df[df['error'] == 'N']
+        # only validated data and URB-only data
+        df = df[(df['error'] == 'N') & (df['tipo_elem'] == 'URB')]
+
+        # get data from selected stations
+        df = pd.merge(df, stations, left_on=station_id, right_on='id', how='inner')
 
         df['fecha'] = pd.to_datetime(df['fecha']).dt.to_period('H')
-
-        df_grb = df.groupby(['fecha', 'tipo_elem']).mean().drop('id', axis=1).reset_index()
+        df_grb = df.groupby(['fecha', 'common_id']).mean().drop('id', axis=1).reset_index()
+        # 12 measures for each hour (one per area)
 
         dataframes.append(df_grb)
 
     traffic_data = pd.concat(dataframes, axis=0).sort_values(by='fecha', ignore_index=True)
 
-    raw.save_dataset(traffic_data, traffic_dataset[0])
+    raw.save_dataset(traffic_data, save_name + '_data')
 
 
 if __name__ == '__main__':

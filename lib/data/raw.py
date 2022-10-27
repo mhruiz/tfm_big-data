@@ -142,4 +142,4 @@ def save_dataset(dataframes: Union[Iterable[pd.DataFrame], pd.DataFrame], datase
 
 
 def read_dataset_from_raw(dataset_name: str) -> pd.DataFrame:
-    return pd.read_csv(f'{SAVE_DIR}{normalize_string(dataset_name)}.csv')
+    return pd.read_csv(f'{SAVE_DIR}{normalize_string(dataset_name)}_data.csv')
