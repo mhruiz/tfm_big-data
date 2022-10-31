@@ -1,3 +1,4 @@
 .vscode/*
 lib/__pycache__/*
+lib/data/__pycache__/*
 notas.md
