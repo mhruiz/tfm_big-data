@@ -1,5 +1,4 @@
 .vscode/*
 lib/__pycache__/*
 notas.md
-data.csv
 lib/data/__pycache__/*
