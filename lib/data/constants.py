@@ -25,3 +25,5 @@ START_YEAR = 2019
 CLEAN_DIR = 'data/clean/'
 
 PROCESSED_DIR = 'data/processed/'
+
+MODEL_DIR = 'model/'
