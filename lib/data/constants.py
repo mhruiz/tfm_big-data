@@ -27,3 +27,18 @@ CLEAN_DIR = 'data/clean/'
 PROCESSED_DIR = 'data/processed/'
 
 MODEL_DIR = 'model/'
+
+INPUT_COLS = [
+    'week',
+    'daypart',
+    'is_holiday',
+    'intensity',
+    'occupation',
+    'congestion'
+]
+
+OUTPUT_COLS = [
+    'avg_noise', 
+    'p10',
+    'p90'
+]
