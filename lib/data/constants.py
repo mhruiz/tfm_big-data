@@ -4,6 +4,8 @@ PATH = 'catalogo/title/'
 
 API_FULL_PATH = API_URL + PATH
 
+REAL_TIME_TRAFFIC_DATA = 'Tráfico. Datos del tráfico en tiempo real'
+
 TRAFFIC_STATIONS = 'Tráfico. Ubicación de los puntos de medida del tráfico'
 
 MEASURING_STATIONS_DATA_NAMES = [
