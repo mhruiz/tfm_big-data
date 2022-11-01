@@ -7,6 +7,9 @@ import zipfile
 import urllib
 import os
 
+import xmltodict
+import datetime
+
 from ..utils import normalize_string, get_numeric_characters
 from .constants import *
 
@@ -59,6 +62,28 @@ def read_csv_from_url(csv_url: str) -> pd.DataFrame:
     return pd.read_csv(StringIO(csv_content), sep=';')
 
 
+def read_xml_from_url(xml_url: str) -> pd.DataFrame:
+    '''
+    Read only selected fields. It is used for real-time traffic data
+    '''
+
+    xml_content = requests.get(xml_url).content
+
+    xml_data = xmltodict.parse(xml_content)
+
+    columns = ['id', 'intensity', 'occupation', 'congestion', 'datetime']
+
+    datet = datetime.datetime.strptime(xml_data['pms']['fecha_hora'], '%d/%m/%Y %H:%M:%S')
+
+    data = [[int(x['idelem']), 
+                int(x['intensidad']), 
+                    int(x['ocupacion']), 
+                        int(x['carga']),
+                            datet] for x in xml_data['pms']['pm'] if x['error'] == 'N']
+
+    return pd.DataFrame(data, columns=columns)
+
+
 def load_dataset(
     dataset_name: str, 
     format: str, 
@@ -85,10 +110,19 @@ def load_dataset(
                                     file['title']) for file in dataset_info \
                                                         if 'desde' in file['title'] or int(get_numeric_characters(file['title'])) >= start_from]
     except:
-        # this dataset does not have yearly data
-        available_files = [(file['accessURL'], \
-                                file['format']['value'], \
-                                    file['title']) for file in dataset_info]
+        try:
+            # this dataset does not have yearly data
+            available_files = [(file['accessURL'], \
+                                    file['format']['value'], \
+                                        file['title']) for file in dataset_info]
+        except:
+            # title field outside
+            available_files = [(file['accessURL'], \
+                                    file['format']['value']) for file in dataset_info]
+
+            title = api_response.json()['result']['items'][0]['title']
+
+            available_files = [(f_url, fmt, title) for f_url, fmt in available_files]
 
     # if this dataset's files are given in ZIP format, extract their content and 
     # join it into a single Dataframe
@@ -103,7 +137,7 @@ def load_dataset(
         # set read content function
         read_content_fn = read_csvs_from_online_zip
             
-    else:
+    elif format in ['csv', 'txt']:
         # read csv or txt files (if no csv is available)
 
         # get all csv files
@@ -121,6 +155,19 @@ def load_dataset(
 
         # set read content function
         read_content_fn = read_csv_from_url
+
+    elif format == 'xml':
+        # get xml files
+        available_xmls = list(filter(lambda x: x[1] == 'application/xml', available_files))
+        urls_xml, _, titles_xml = map(list, zip(*available_xmls))
+
+        available_files = urls_xml
+
+        # set read content function
+        read_content_fn = read_xml_from_url
+        pass
+    else:
+        raise Exception('Unsupported format ' + format)
 
     if verbose:
         print(f'  Found {len(available_files)} files')
