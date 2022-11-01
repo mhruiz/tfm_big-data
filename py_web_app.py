@@ -25,8 +25,6 @@ noise_data, last_sync = lib.app.update_data()
 
 def load_fig(noise_data):
     
-    print('Cargando nuevos noise_data')
-
     fig = px.scatter_mapbox(noise_data, 
                             lat="latitud", 
                             lon="longitud", 
@@ -91,10 +89,11 @@ def refresh_data(value):
     if last_sync == data_sync:
         return fig
 
-    print('Update datetime:', data_sync)
     last_sync = data_sync
 
-    return load_fig(noise_data)
+    fig = load_fig(noise_data)
+
+    return fig
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
